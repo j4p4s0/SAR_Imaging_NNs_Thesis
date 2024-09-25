@@ -1,21 +1,23 @@
 import os
 
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0' #Disable oneDNN custom operations used for otimization 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #Turn off messages about TensorFlow otimization operations
-
 import tensorflow as tf
 from tensorflow import keras as keras
 
 from PIL import Image
 import numpy as np
 
-# Function to load a PNG image and convert it to a NumPy array
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0' #Disable oneDNN custom operations used for otimization 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #Turn off messages about TensorFlow otimization operations
+
+
+img_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-IMG/"
+raw_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
 
 
 deep_conv_encoder = keras.Sequential()
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 64, kernel_size = (3,3), activation = keras.activations.leaky_relu))
-
+""" 
 deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 128, kernel_size = (3,3), activation = keras.activations.leaky_relu))
@@ -45,7 +47,7 @@ deep_conv_encoder.add(keras.layers.SpatialDropout2D(0.5)) #not sure if 0.5 is th
 deep_conv_encoder.add(keras.layers.Dense(2014, activation = keras.activations.leaky_relu))
 
 deep_conv_encoder.add(keras.layers.Dense(2014, activation = keras.activations.leaky_relu))
-
+ """
 
 for i, layer in enumerate(deep_conv_encoder.layers):
     print(f'Layer {i}: {layer.name}, {layer.__class__.__name__}')
@@ -56,7 +58,16 @@ deep_conv_encoder.compile(optimizer = 'adam', loss = 'mean_absolute_error')
 # Print the model summary
 deep_conv_encoder.summary()
 
-def png_to_numpy(image_path):
+def get_files_list (dir_path):
+    
+    files_names_list = os.listdir(dir_path)
+    files_names_list.sort()
+
+    return files_names_list
+
+
+def img_to_numpy(image_path):
+    
     # Open the image file
     img = Image.open(image_path)
     
@@ -65,12 +76,55 @@ def png_to_numpy(image_path):
     
     return img_array
 
-x_train = png_to_numpy("GBSAR dataset/RealSAR-IMG/0_Aluminium.png")
-x_train = np.append(x_train, png_to_numpy("GBSAR dataset/RealSAR-IMG/1_Aluminium.png"))
 
+def txt_to_numpy(txt_file_path):
+    
+    # Open the image file
+    txt_file = np.loadtxt(txt_file_path) 
+    
+    # Convert the image to a NumPy array
+    txt_array = np.array(txt_file).reshape(len(txt_file), -1, 1)
+    
+    return txt_array
+
+
+def import_img_files (dir_path, files_names):
+
+    img_files = []
+    for i in files_names:
+        img_files.append(img_to_numpy(dir_path + i))
+
+    img_files = np.asarray (img_files)
+
+    return img_files
+
+def import_txt_files (dir_path, files_names):
+
+    txt_files = []
+    for i in files_names:
+        txt_files.append(txt_to_numpy(dir_path + i))
+
+    txt_files = np.asarray (txt_files)
+
+    return txt_files
+
+
+img_files_names = get_files_list(img_data_dir)
+raw_files_names = get_files_list(raw_data_dir)
+
+for i in range(len(img_files_names)):
+
+    if img_files_names[i][:-3] != raw_files_names[i][:-3]: 
+        print (f"ERROR: File number {i} incoherent name\n\tIMG file name: {img_files_names[i]}\n\tRAW file name: {raw_files_names[i]}\nVerify if files correspond befores proceeding.")
+
+img_files = import_img_files(img_data_dir, img_files_names)
+raw_files = import_txt_files(raw_data_dir, raw_files_names)
+
+print (img_files.shape)
+print (raw_files.shape)
 
 # Train the model
-#deep_conv_encoder.fit(x_train, y_train, epochs = 80, batch_size = 32, validation_split = 0.2)
+deep_conv_encoder.fit(raw_files, img_files, epochs = 80, batch_size = 32, validation_split = 0.2)
 
 
 
