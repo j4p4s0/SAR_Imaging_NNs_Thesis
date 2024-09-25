@@ -6,7 +6,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #Turn off messages about TensorFlow oti
 import tensorflow as tf
 from tensorflow import keras as keras
 
+from PIL import Image
 import numpy as np
+
+# Function to load a PNG image and convert it to a NumPy array
 
 
 deep_conv_encoder = keras.Sequential()
@@ -52,6 +55,19 @@ deep_conv_encoder.compile(optimizer = 'adam', loss = 'mean_absolute_error')
 
 # Print the model summary
 deep_conv_encoder.summary()
+
+def png_to_numpy(image_path):
+    # Open the image file
+    img = Image.open(image_path)
+    
+    # Convert the image to a NumPy array
+    img_array = np.array(img)
+    
+    return img_array
+
+x_train = png_to_numpy("GBSAR dataset/RealSAR-IMG/0_Aluminium.png")
+x_train = np.append(x_train, png_to_numpy("GBSAR dataset/RealSAR-IMG/1_Aluminium.png"))
+
 
 # Train the model
 #deep_conv_encoder.fit(x_train, y_train, epochs = 80, batch_size = 32, validation_split = 0.2)
