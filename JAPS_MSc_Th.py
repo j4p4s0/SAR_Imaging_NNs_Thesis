@@ -20,41 +20,44 @@ img_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/
 raw_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
 
 
+stride_x = 1
+stride_y = 2
+
 
 deep_conv_encoder = keras.Sequential()
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 64, kernel_size = (3,3), activation = keras.activations.leaky_relu))
-""" 
-deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
+
+deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (stride_x, stride_y)))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 128, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
-deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
+deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (stride_x, stride_y)))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 256, kernel_size = (3,3), activation = keras.activations .leaky_relu))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 256, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
-deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
+deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (stride_x, stride_y)))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 512, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 512, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
-deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
+deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (stride_x, stride_y)))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 512, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
 deep_conv_encoder.add(keras.layers.Conv2D(filters = 512, kernel_size = (3,3), activation = keras.activations.leaky_relu))
 
-deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2)))
+deep_conv_encoder.add(keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (stride_x, stride_y)))
 
 deep_conv_encoder.add(keras.layers.SpatialDropout2D(0.5)) #not sure if 0.5 is the correct dropout rate
 
 deep_conv_encoder.add(keras.layers.Dense(2014, activation = keras.activations.leaky_relu))
 
 deep_conv_encoder.add(keras.layers.Dense(2014, activation = keras.activations.leaky_relu))
- """
+
 
 for i, layer in enumerate(deep_conv_encoder.layers):
     print(f'Layer {i}: {layer.name}, {layer.__class__.__name__}')
