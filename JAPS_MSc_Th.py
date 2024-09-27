@@ -10,8 +10,15 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0' #Disable oneDNN custom operations used
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' #Turn off messages about TensorFlow otimization operations
 
 
+#Desktop
+""" 
 img_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-IMG/"
 raw_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
+"""
+#Laptop
+img_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-IMG/"
+raw_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
+
 
 
 deep_conv_encoder = keras.Sequential()
