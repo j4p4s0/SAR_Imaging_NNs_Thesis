@@ -30,8 +30,12 @@ lambda = c0/fc;          % SAR wavelength [m]
 [Nl, Ns] = size(raw);    % Number of lines and samples
 
 % Slant range [m] for each range pixel
+<<<<<<< HEAD
 %SR = (swst + (0:Ns-1)/fs)*c0/2;
 SR = 0;
+=======
+SR = (swst + (0:Ns-1)/fs)*c0/2; %colocar a 0
+>>>>>>> e0d1511d20111266eac7b1477edec9242fd6f1ba
 
 % Doppler frequency vector after FFT (assumes DC=0)
 fdopp = (0:Nl-1)'/Nl*PRF;
