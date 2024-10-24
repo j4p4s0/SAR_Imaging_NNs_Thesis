@@ -1,7 +1,7 @@
 
 extraction_path = pwd; %Data folder dir
-data_name = "E2_84699_STD_L0_F299"; %Matlab Example
-data_file = extraction_path + "\" + data_name;
+% data_name = "E2_84699_STD_L0_F299"; %Matlab Example
+% data_file = extraction_path + "\" + data_name;
 
 %% JAPS Code - Extraction of zip folders
 
@@ -14,30 +14,54 @@ c = physconst('LightSpeed');
 % Data folder dir
 data_dir_path = 'C:\Users\joaoa\Documents\[EU]Faculdade\Tese\ESA_ERS2\Extraidos'; 
 
-% File List extraction to unzip all foledrs
-fid = fopen('C:\Users\joaoa\Documents\[EU]Faculdade\Tese\ESA_ERS2\Folders_List.txt');
 
-text_line = fgetl(fid);
+data_name = "E2_84661_STD_L0_F138"; %Matlab Example
+data_file = data_dir_path + "\" + data_name + "\" + data_name;
 
-while ischar(text_line)
+% Extract ERS system parameters
+[fs,fc,prf,tau,bw,v,ro,fd] = ERSParameterExtractor(data_file + '.000.ldr');
     
-    data_name = text_line;
-    data_file = data_dir_path + "\" + data_name + "\" + data_name;
+% Extract raw data 
+rawData = ERSDataExtractor(data_file + '.000.raw', data_file + '.000.pi',fs,fc,prf,tau,v,ro,fd).';
 
-    disp(data_name);
-    disp(data_file);
-    
-    % ExtractERSData(extraction_path, data_name);
+%rawData = fft(rawData);
 
-    % Extract ERS system parameters
-    [fs,fc,prf,tau,bw,v,ro,fd] = ERSParameterExtractor(data_file + '.000.ldr');
-        
-    % Extract raw data 
-    rawData = ERSDataExtractor(data_file + '.000.raw', data_file + '.000.pi',fs,fc,prf,tau,v,ro,fd).';
-    
-    text_line = fgetl(fid);
+img = RD_SAR_focus(rawData, v, fc, prf, fs, 0, bw, tau);
 
-end
+% Display image
+figure(1)
+imshow(img)
+%imagesc(log(abs(img)))
+% axis image
+% colormap('gray')
+% title('SLC Image')
+% ylabel('Range bin')
+% xlabel('Azimuth bin')
+
+% % File List extraction to unzip all foledrs
+% fid = fopen('C:\Users\joaoa\Documents\[EU]Faculdade\Tese\ESA_ERS2\Folders_List.txt');
+% 
+% text_line = fgetl(fid);
+% 
+% while ischar(text_line)
+% 
+%     data_name = text_line;
+%     data_file = data_dir_path + "\" + data_name + "\" + data_name;
+% 
+%     disp(data_name);
+%     disp(data_file);
+% 
+%     % ExtractERSData(extraction_path, data_name);
+% 
+%     % Extract ERS system parameters
+%     [fs,fc,prf,tau,bw,v,ro,fd] = ERSParameterExtractor(data_file + '.000.ldr');
+% 
+%     % Extract raw data 
+%     rawData = ERSDataExtractor(data_file + '.000.raw', data_file + '.000.pi',fs,fc,prf,tau,v,ro,fd).';
+% 
+%     text_line = fgetl(fid);
+% 
+% end
 
 
 %% MATLAB CODE - Data and Parameters Extraction
