@@ -12,7 +12,9 @@ extraction_path = pwd; %Data folder dir
 c = physconst('LightSpeed');
 
 % Data folder dir
-data_dir_path = 'C:\Users\joaoa\Documents\[EU]Faculdade\Tese\ESA_ERS2\Extraidos'; 
+%data_dir_path = 'C:\Users\joaoa\Documents\[EU]Faculdade\Tese\ESA_ERS2\Extraidos'; 
+data_dir_path = 'C:\Users\joaoa\Desktop\Tese'; 
+
 
 
 data_name = "E2_84661_STD_L0_F138"; %Matlab Example
@@ -24,14 +26,15 @@ data_file = data_dir_path + "\" + data_name + "\" + data_name;
 % Extract raw data 
 rawData = ERSDataExtractor(data_file + '.000.raw', data_file + '.000.pi',fs,fc,prf,tau,v,ro,fd).';
 
-%rawData = fft(rawData);
+
+rawData = fft(rawData.');
 
 img = RD_SAR_focus(rawData, v, fc, prf, fs, 0, bw, tau);
 
 % Display image
 figure(1)
 imshow(img)
-%imagesc(log(abs(img)))
+imagesc(log(abs(img)))
 % axis image
 % colormap('gray')
 % title('SLC Image')
