@@ -33,6 +33,8 @@ lambda = c0/fc;          % SAR wavelength [m]
 %SR = (swst + (0:Ns-1)/fs)*c0/2;
 SR = (swst * (0:Ns-1)/fs)*c0/2; %prof. Rui disse para por a 0 - apenas relevante para processamento em tempo real
 
+% 59 | 631-646 | F16.7 | Slant range reference (for range spreading loss compensation) | 847.0 | km
+%ir buscar ao ficheiro ".meta"
 
 % Doppler frequency vector after FFT (assumes DC=0)
 fdopp = (0:Nl-1)'/Nl*PRF;
@@ -40,14 +42,58 @@ idx_wrap = fdopp>=PRF/2;
 fdopp(idx_wrap) = fdopp(idx_wrap) - PRF;
 
 
+%% Range-Doppler Algorithm
+
+%   1 - Range Compression - Range FFT is performed, a matched ﬁlter multiplication and, lastly, a range inverse fast Fourier transform"
+%       S0(fτ, η) is the range FFT of sr and G(fτ) is the frequency domain matched ﬁlter
+%       
+%       src(τ, η) = IFFTτ[S0(fτ, η)G(fτ)]
+%
+%   2 - Azimuth FFT - Data transformed into the Range–Doppler domain with an azimuth FFT
+%       
+%       s1(τ, fη) = FFTη[Src( fτ, η)]
+%
+%   3 - Range Cell Migration Correction - azimuth compression along each parallel azimuth line
+%
+%       ∆R(fη) =(λ^2)Rt(fη^2) / 8(Vr^2)
+%       
+%       Rt - distance from the antenna to the target
+%       Ka - azimuth FM rate of point target signal
+%       fη = −Kaη
+%       λ - wavelength of carrier frequency
+%
+%       s2(τ, fη) = A0 pr [τ − 2Rt/c] Wa(fη − fηc) × exp [−j 4πf0Rt(η)/c] exp [jπ (fη^2)/Ka]
+%
+%   4 - Azimuth Compression - matched ﬁlter is applied to the data after RCMC and, lastly, an IFFT is performed
+%
+%       s3(τ, fη) = S2(τ, η) Haz fη
+%       Haz(fη) = exp [−jπ(fη^2)/Ka] - matched filter
+%
+%   5 - Azimuth IFFT - Transforms the data into the time domain
+%
+%       sac(τ, fη) = IFFTη S3(τ, fη)
+
+
+
 %% Range compression
 disp 'Range compression'
 
 % Reference range chirp
-t_rg = 0:1/fs:ch_T; t_rg = t_rg - mean(t_rg);
+t_rg = 0:1/fs:ch_T;
+t_rg = t_rg - mean(t_rg);
 chr_rg = exp(1i*pi*ch_R*t_rg.^2);
 
 rgc = ifft(fft(raw, [], 2).*conj(fft(chr_rg, Ns)), [], 2);
+
+% disp("Range Compression")
+% Fr  = 60e6;       % Smapling Rate U: Hz
+% Nrg = 320;        % Smaples per Range
+% Kr  = 20e12;      % Pulse Rate U: Hz/s
+
+% Frg = ((0:Nrg-1) - Nrg/2) / Nrg * Fr;
+% GFilter = exp(1j * pi * ((Frg.^2) / Kr));
+% data = ifty(fty(data) .* GFilter);
+% disp("Range Compression done")
 
 
 %% Range cell migration correction
@@ -58,6 +104,38 @@ for k=1:Nl
     SR2 = SR + SR*(lambda*fdopp(k)).^2/(8*Vr^2);
     rgc_dopp(k,:) = interp1(SR, rgc_dopp(k,:), SR2, 'cubic', 0);
 end
+
+% disp("RCMC")
+% Fr  = 60e6;       % Smapling Rate U: Hz
+% Nrg = 320;        % Smaples per Range
+% Frg = ((0:Nrg-1) - Nrg/2) / Nrg * Fr;
+
+% Fa  = 100;        % Pulse Repetition Frequecny U: Hz
+% Naz = 256;        % Range lines
+% Faz = fc + ((0:Naz-1) - Naz/2) / Naz * Fa;
+% lambda = C / f0; % Wavelength
+% R0  = 20e3;       % Center Slant Range U: m
+% dR = lambda^2 * R0 .* Faz.^2 / (8 * Vr^2);
+% [Frg_2D, dR2D] = meshgrid(Frg, dR);
+% G = exp(1j * 4 * pi * Frg_2D .* dR2D / C);
+% data = data .* G;
+% disp("RCMC done")
+
+% disp("RCMC")
+% Fr  = 60e6;       % Smapling Rate U: Hz
+% Nrg = 320;        % Smaples per Range
+% Frg = ((0:Nrg-1) - Nrg/2) / Nrg * Fr;
+
+% PRF == Fa  = 100;        % Pulse Repetition Frequecny U: Hz
+% Naz = 256;        % Range lines
+% Faz = fc + ((0:Naz-1) - Naz/2) / Naz * Fa;
+% lambda == lambda = C / f0; % Wavelength
+% R0  = 20e3;       % Center Slant Range U: m
+% dR = lambda^2 * R0 .* Faz.^2 / (8 * Vr^2);
+% [Frg_2D, dR2D] = meshgrid(Frg, dR);
+% G = exp(1j * 4 * pi * Frg_2D .* dR2D / C);
+% data = data .* G;
+% disp("RCMC done")
 
 
 %% Azimuth compression

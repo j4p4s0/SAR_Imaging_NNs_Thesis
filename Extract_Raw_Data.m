@@ -143,6 +143,10 @@ function [fs,fc,prf,tau,bw,veff,ro,fdop] = ERSParameterExtractor(file)
     % Velocity Z
     status = fseek(fid,720+1886+496,'bof')|status;
     zVelocity = str2double(fread(fid,[1 22],'*char'));    % zVelocity (m/sec)
+
+    % Slant range reference
+    status = fseek(fid,720+1886+650+630,'bof')|status;
+    SR_ref = str2double(fread(fid,[1 16],'*char'));    % Slant range reference (km)
     fclose(fid);
     
     % Checking for any file error
