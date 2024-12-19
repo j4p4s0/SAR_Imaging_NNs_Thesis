@@ -30,8 +30,8 @@ lambda = c0/fc;          % SAR wavelength [m]
 [Nl, Ns] = size(raw);    % Number of lines and samples
 
 % Slant range [m] for each range pixel
-%SR = (swst + (0:Ns-1)/fs)*c0/2;
-SR = (swst * (0:Ns-1)/fs)*c0/2; %prof. Rui disse para por a 0 - apenas relevante para processamento em tempo real
+SR = (   + (0:Ns-1)/fs)*c0/2;
+%SR = (swst * (0:Ns-1)/fs)*c0/2; %prof. Rui disse para por a 0 - apenas relevante para processamento em tempo real
 
 % 59 | 631-646 | F16.7 | Slant range reference (for range spreading loss compensation) | 847.0 | km
 %ir buscar ao ficheiro ".meta"
@@ -51,7 +51,7 @@ fdopp(idx_wrap) = fdopp(idx_wrap) - PRF;
 %
 %   2 - Azimuth FFT - Data transformed into the Range–Doppler domain with an azimuth FFT
 %       
-%       s1(τ, fη) = FFTη[Src( fτ, η)]
+%       s1(τ, fη) = FFTη[Src(fτ, η)]
 %
 %   3 - Range Cell Migration Correction - azimuth compression along each parallel azimuth line
 %
@@ -94,7 +94,8 @@ rgc = ifft(fft(raw, [], 2).*conj(fft(chr_rg, Ns)), [], 2);
 % GFilter = exp(1j * pi * ((Frg.^2) / Kr));
 % data = ifty(fty(data) .* GFilter);
 % disp("Range Compression done")
-
+% data = ftx(data);
+% disp("Azimuth FFT done")
 
 %% Range cell migration correction
 disp 'RCMC'
@@ -143,6 +144,13 @@ disp 'Azimuth compression'
 
 dopp_R = -2*Vr^2/lambda./SR; % Doppler rate
 slc = ifft(rgc_dopp.*exp(1i*pi*fdopp.^2./dopp_R));
+
+% disp("Azimuth compression")
+% Ka = 2 * Vr^2 / lambda / R0;
+% H = exp(-1j * pi * Faz.^2 ./ Ka);
+% H_2D = repmat(H.', [1, size(data, 2)]);  % Replicate H across the range dimension
+% data = data .* H_2D;
+% disp("Azimuth compression done")
 
 disp 'END :)'
 
