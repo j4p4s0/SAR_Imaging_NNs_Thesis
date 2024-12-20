@@ -11,7 +11,7 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     simulation = 0;
     
     % Fast? Fase for black and white images, slow for nice colour ones
-    fast = 0;
+    fast = 1;
     
     % Load the 'echo.mat' data
     % if simulation == 0
@@ -38,6 +38,22 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     % Var to hold echo data, be it sim or not.
     data = 0;
 
+    %% JAPS CODE
+    R0  = SR ; % Center Slant Range U: m
+    Vr  = Vr ; % Radar Velocity U: m/s
+    Tr  = ch_T ; % Pulse Duration U: s
+    Kr  = ch_R ; % Pulse Rate U: Hz/s
+    f0  = f0 ; % Carrier (radar) Frequency U: Hz
+    Fr  = fs ; % Smapling Rate U: Hz
+    Fa  = PRF ; % Pulse Repetition Frequecny U: Hz
+    
+    Naz = 0 ; % Range lines
+    Nrg = 0 ; % Smaples per Range
+    [Naz, Nrg] = size(raw);    % Number of lines and samples
+    
+    fc  = 0 ; % Doppler centroid U: Hz
+    data = raw;
+    %%
     % Radar Params for RADARSAT: 
     if simulation == 0
         R0  = 988647.462; % Center Slant Range U: m
@@ -65,24 +81,7 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
         Nrg = 320;        % Smaples per Range
         fc  = 0;          % Doppler centroid U: Hz
     end
-
-    %% JAPS CODE
-
-    R0  = SR ; % Center Slant Range U: m
-    Vr  = Vr ; % Radar Velocity U: m/s
-    Tr  = ch_T ; % Pulse Duration U: s
-    Kr  = ch_R ; % Pulse Rate U: Hz/s
-    f0  = f0 ; % Carrier (radar) Frequency U: Hz
-    Fr  = fs ; % Smapling Rate U: Hz
-    Fa  = PRF ; % Pulse Repetition Frequecny U: Hz
     
-    Naz = 0 ; % Range lines
-    Nrg = 0 ; % Smaples per Range
-    [Naz, Nrg] = size(raw);    % Number of lines and samples
-    
-    fc  = 0 ; % Doppler centroid U: Hz
-    data = double(raw);
-    %%   
     % Calculated Values
     lambda = C / f0; % Wavelength
     t0 = 2 * R0 / C;  % Starting time of the data window
