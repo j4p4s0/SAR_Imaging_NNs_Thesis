@@ -80,7 +80,7 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     Nrg = 0 ; % Smaples per Range
     [Naz, Nrg] = size(raw);    % Number of lines and samples
     
-    fc  = 0 ; % Doppler centroid U: Hz
+    fc  = 1 ; % Doppler centroid U: Hz
     data = double(raw);
     %%   
     % Calculated Values
