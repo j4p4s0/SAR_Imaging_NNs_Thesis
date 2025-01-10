@@ -7,16 +7,18 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     
     %clc; clear all; close all;
     
-    % Simulation? 1 for sim, 0 for RADARSAT
+    % Simulation? 1 for sim, 0 for RADARSAT --- JAPS: 2 for other
     simulation = 0;
     
     % Fast? Fase for black and white images, slow for nice colour ones
-    fast = 0;
+    fast = 1;
     
     % Load the 'echo.mat' data
-    % if simulation == 0
-    %     load('echo.mat');
-    % end
+    if simulation == 0
+         file = load('echo.mat', 'echo');
+         raw = file.echo;
+         clear file;
+    end
     
     % How many sim point targets?
     NumberofSimTargets = 3;
@@ -37,7 +39,7 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
 
     % Var to hold echo data, be it sim or not.
     data = 0;
-
+    
     % Radar Params for RADARSAT: 
     if simulation == 0
         R0  = 988647.462; % Center Slant Range U: m
@@ -68,21 +70,24 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
 
     %% JAPS CODE
 
-    R0  = SR ; % Center Slant Range U: m
-    Vr  = Vr ; % Radar Velocity U: m/s
-    Tr  = ch_T ; % Pulse Duration U: s
-    Kr  = ch_R ; % Pulse Rate U: Hz/s
-    f0  = f0 ; % Carrier (radar) Frequency U: Hz
-    Fr  = fs ; % Smapling Rate U: Hz
-    Fa  = PRF ; % Pulse Repetition Frequecny U: Hz
-    
-    Naz = 0 ; % Range lines
-    Nrg = 0 ; % Smaples per Range
-    [Naz, Nrg] = size(raw);    % Number of lines and samples
-    
-    fc  = 0 ; % Doppler centroid U: Hz
-    data = double(raw);
+    if simulation == 2
+        R0  = SR ; % Center Slant Range U: m
+        Vr  = Vr ; % Radar Velocity U: m/s
+        Tr  = ch_T ; % Pulse Duration U: s
+        Kr  = ch_R ; % Pulse Rate U: Hz/s
+        f0  = f0 ; % Carrier (radar) Frequency U: Hz
+        Fr  = fs ; % Smapling Rate U: Hz
+        Fa  = PRF ; % Pulse Repetition Frequecny U: Hz
+        
+        Naz = 0 ; % Range lines
+        Nrg = 0 ; % Smaples per Range
+        [Naz, Nrg] = size(raw);    % Number of lines and samples
+        
+        fc  = 0 ; % Doppler centroid U: Hz
+
+    end
     %%   
+
     % Calculated Values
     lambda = C / f0; % Wavelength
     t0 = 2 * R0 / C;  % Starting time of the data window
@@ -93,59 +98,59 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     ta = ((0:Naz-1) - Naz/2) * 1/Fa;
     Faz = fc + ((0:Naz-1) - Naz/2) / Naz * Fa;
 
-    
-    % if simulation == 1
-    %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %     % SIMULATOR
-    %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %     % Generate random target positions
-    %     for i = 1:NumberofSimTargets
-    %         xmin = 0;
-    %         xmax = Nrg;
-    %         ymin = -Naz;
-    %         ymax = Naz;
-    %         x =  R0 + (xmax-xmin).*rand() + xmin;
-    %         y = (ymax-ymin).*rand() + ymax;
-    %         xs(i) = x;
-    %         ys(i) = y;
-    %         btc = (y-x)/Vr;
-    %         btcs(i) = btc;
-    %     end
-    % 
-    %     % if it should be made more accurate in terms of physical antenna size
-    %     La_real = 8; % Antenna length in azimuth
-    %     bBandwidth = 0.886 * lambda / La_real; % Radar 3dB beamwidth
-    % 
-    %     % simulation freq and time Axis
-    %     s_tr = 2 * x(1) / C + (-Nrg / 2 : (Nrg / 2 - 1)) / Fr;
-    %     s_ta = (-Naz / 2 : Naz / 2 - 1) / Fa;
-    % 
-    %     % Generate azimuth and frequency matrix.
-    %     trAxis = ones(Naz,1) * s_tr;
-    %     taAxis = s_ta.' * ones(1,Nrg);
-    % 
-    %     % Generate simulated data for each target
-    %     s_k = zeros(Naz, Nrg, NumberofSimTargets);
-    %     for k = 1:NumberofSimTargets
-    %         Rn = sqrt((xs(k) .* ones(Naz,Nrg)) .^ 2 + (Vr .* taAxis - ys(k) .* ones(Naz,Nrg)) .^ 2);
-    %         inSwath = ((abs(trAxis - 2 .* Rn ./ C)) <= ((Tr / 2) .* ones(Naz,Nrg)));
-    % 
-    %         % sinc-squared function, Formula 4.31 in textbook
-    %         s = atan(Vr .* (taAxis - btcs(k) .* ones(Naz,Nrg)) / xs(k)); 
-    %         azimuth = (sinc(0.886 .* s ./ bBandwidth)) .^ 2;
-    % 
-    %         % reflection of LFMW, Formula 4.32 in textbook
-    %         s_k(:,:,k) = inSwath .* azimuth .* exp(-(1j * 4 * pi * f0) .* Rn ./ C) .* exp((1j * pi * Kr) .* (trAxis - 2 .* Rn ./ C) .^ 2);
-    %     end
-    % 
-    %     % Load the simlatued point target data into the data matrix for RDA
-    %     data = sum(s_k, 3);
-    % 
-    %     % Display each simulated signal and the sum.
-    %     plotSimSignals(s_k, NumberofSimTargets);
-    % else
-    %     data = double(echo);
-    % end
+
+    if simulation == 1
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % SIMULATOR
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Generate random target positions
+        for i = 1:NumberofSimTargets
+            xmin = 0;
+            xmax = Nrg;
+            ymin = -Naz;
+            ymax = Naz;
+            x =  R0 + (xmax-xmin).*rand() + xmin;
+            y = (ymax-ymin).*rand() + ymax;
+            xs(i) = x;
+            ys(i) = y;
+            btc = (y-x)/Vr;
+            btcs(i) = btc;
+        end
+
+        % if it should be made more accurate in terms of physical antenna size
+        La_real = 8; % Antenna length in azimuth
+        bBandwidth = 0.886 * lambda / La_real; % Radar 3dB beamwidth
+
+        % simulation freq and time Axis
+        s_tr = 2 * x(1) / C + (-Nrg / 2 : (Nrg / 2 - 1)) / Fr;
+        s_ta = (-Naz / 2 : Naz / 2 - 1) / Fa;
+
+        % Generate azimuth and frequency matrix.
+        trAxis = ones(Naz,1) * s_tr;
+        taAxis = s_ta.' * ones(1,Nrg);
+
+        % Generate simulated data for each target
+        s_k = zeros(Naz, Nrg, NumberofSimTargets);
+        for k = 1:NumberofSimTargets
+            Rn = sqrt((xs(k) .* ones(Naz,Nrg)) .^ 2 + (Vr .* taAxis - ys(k) .* ones(Naz,Nrg)) .^ 2);
+            inSwath = ((abs(trAxis - 2 .* Rn ./ C)) <= ((Tr / 2) .* ones(Naz,Nrg)));
+
+            % sinc-squared function, Formula 4.31 in textbook
+            s = atan(Vr .* (taAxis - btcs(k) .* ones(Naz,Nrg)) / xs(k)); 
+            azimuth = (sinc(0.886 .* s ./ bBandwidth)) .^ 2;
+
+            % reflection of LFMW, Formula 4.32 in textbook
+            s_k(:,:,k) = inSwath .* azimuth .* exp(-(1j * 4 * pi * f0) .* Rn ./ C) .* exp((1j * pi * Kr) .* (trAxis - 2 .* Rn ./ C) .^ 2);
+        end
+
+        % Load the simlatued point target data into the data matrix for RDA
+        data = sum(s_k, 3);
+
+        % Display each simulated signal and the sum.
+        plotSimSignals(s_k, NumberofSimTargets);
+    else
+        data = double(raw);
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % RDA
@@ -283,6 +288,7 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
         end
     end
 end
+
 
 function plotSimSignals(d, NumberofSims)
     number = NumberofSims;
