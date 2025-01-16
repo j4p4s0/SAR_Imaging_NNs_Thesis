@@ -24,6 +24,37 @@ function slc = RD_SAR_focus(raw, Vr, fc, PRF, fs, swst, ch_R, ch_T)
 % Author: Mario Azcueta <mazcueta@gmail.com> (Feb 2014, updated Apr 2022)
 
 
+%% JAPS CODE
+
+file = load('echo.mat', 'echo');
+raw = file.echo;
+clear file;
+
+% Radar Params for RADARSAT: 
+R0  = 988647.462; % Center Slant Range U: m
+Vr  = 7062;       % Radar Velocity U: m/s
+Tr  = 41.74e-6;   % Pulse Duration U: s
+%Kr  = -0.72135e12;% Pulse Rate U: Hz/s -- ORIGINAL!!!!
+Kr  = 0.72135e12;% Pulse Rate U: Hz/s
+f0  = 5.3e9;      % Carrier (radar) Frequency U: Hz
+Fr  = 32.317e6;   % Smapling Rate U: Hz
+Fa  = 1256.98;    % Pulse Repetition Frequecny U: Hz
+Naz = 4096;       % Range lines
+Nrg = 4096;       % Smaples per Range
+fc  = -596.271;   % Doppler centroid U: Hz
+
+
+fc = f0;
+PRF = Fa;
+fs = Fr;
+ch_R = Kr;
+ch_T = Tr;
+swst = 0;
+    
+%fc  = 0 ; % Doppler centroid U: Hz
+
+%%
+
 % Constants
 c0 = 299792458;          % Speed of light [m/s]
 lambda = c0/fc;          % SAR wavelength [m]
@@ -154,5 +185,34 @@ slc = ifft(rgc_dopp.*exp(1i*pi*fdopp.^2./dopp_R));
 % disp("Azimuth compression done")
 
 disp 'END :)'
+
+
+% Normalize the SAR image with the maximum pixel amplitude
+SARImage = slc / max(slc(:));
+
+% Display the final SAR image
+figure; imshow(abs(SARImage), []); title('Final Raw (unedited) SAR Image');
+
+% Image processing
+% Constrast increase
+disp("Image contrast increase")
+SARImageEdit = imadjust(SARImage, [0.00015 0.06]);
+disp("Image contrast increase done")
+
+figure; imshow(abs(SARImageEdit), []); title('Constrast Increased');
+
+% Circshift
+disp("image shift")
+SARImageShifted = circshift(SARImageEdit, -295, 1);
+SARImageShifted = circshift(SARImageShifted, -580, 2);
+disp("image shift done")
+figure; imshow(abs(SARImageShifted), []); title('Image shifted');
+
+
+% Despekle
+disp("image despeckle")
+SARImageSpek = specklefilt(SARImageShifted,DegreeOfSmoothing=0.2,NumIterations=50);
+disp("image despeckle done")
+figure; imshow(abs(SARImageSpek), []); title('Speckle Filter');
 
 end

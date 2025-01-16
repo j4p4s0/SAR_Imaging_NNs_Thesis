@@ -4,11 +4,11 @@
 % An RDA implementation for point target simulation and RADARSAT echo data processing
 
 function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
-    
+
     %clc; clear all; close all;
     
     % Simulation? 1 for sim, 0 for RADARSAT --- JAPS: 2 for other
-    simulation = 0;
+    simulation = 2;
     
     % Fast? Fase for black and white images, slow for nice colour ones
     fast = 1;
@@ -45,7 +45,8 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
         R0  = 988647.462; % Center Slant Range U: m
         Vr  = 7062;       % Radar Velocity U: m/s
         Tr  = 41.74e-6;   % Pulse Duration U: s
-        Kr  = -0.72135e12;% Pulse Rate U: Hz/s
+        Kr  = -0.72135e12;% Pulse Rate U: Hz/s -- ORIGINAL!!!!
+        %Kr  = 0.72135e12;% Pulse Rate U: Hz/s -- JAPS VERSION !!!
         f0  = 5.3e9;      % Carrier (radar) Frequency U: Hz
         Fr  = 32.317e6;   % Smapling Rate U: Hz
         Fa  = 1256.98;    % Pulse Repetition Frequecny U: Hz
@@ -86,6 +87,21 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
         fc  = 0 ; % Doppler centroid U: Hz
 
     end
+    % 
+    % wv_frm = phased.LinearFMWaveform('SampleRate',Fr,'PulseWidth',Tr, ...
+    % 'PRF',Fa,'SweepBandwidth',Kr); 
+    % 
+    % data = double(raw);
+
+    %slcimg = rangeMigrationLFM(data, wv_frm, f0, Vr, R0);
+
+    % slcimg = rangeDopplerImagerLFM(data, wv_frm, f0, Vr, R0);
+    % imagesc(abs(slcimg))
+    % title('SLC Image')
+    % xlabel('Cross-Range Samples')
+    % ylabel('Range Samples')
+    % 
+   
     %%   
 
     % Calculated Values
@@ -165,7 +181,8 @@ function RDA(raw, Vr, f0, PRF, fs, SR, ch_R, ch_T)
     
     % Range compression
     disp("Range Compression")
-    GFilter = exp(1j * pi * ((Frg.^2) / Kr));
+    GFilter = exp(1j * pi * ((Frg.^2) / Kr)); %---- ORIGINAL !!!!
+    %GFilter = exp(1j * pi * (-(Frg.^2) / Kr)); %---- JAPS VERSION !!!
     data = ifty(fty(data) .* GFilter);
     disp("Range Compression done")
     
