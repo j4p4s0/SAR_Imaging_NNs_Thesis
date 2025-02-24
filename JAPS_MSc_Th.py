@@ -16,13 +16,12 @@ img_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thes
 raw_data_dir = "C:/Users/joaoa/Documents/[EU]Faculdade/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
 """
 #Laptop
-img_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-IMG/"
-raw_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
+#img_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-IMG/"
+#raw_data_dir = "C:/Users/joaoa/Desktop/Tese/SAR_Imaging_NNs_Thesis/GBSAR datset/RealSAR-RAW/"
 
 
 stride_x = 1
 stride_y = 2
-
 
 deep_conv_encoder = keras.Sequential()
 
@@ -67,6 +66,7 @@ deep_conv_encoder.compile(optimizer = 'adam', loss = 'mean_absolute_error')
 
 # Print the model summary
 deep_conv_encoder.summary()
+
 
 def get_files_list (dir_path):
     
@@ -118,55 +118,82 @@ def import_txt_files (dir_path, files_names):
 
     return txt_files
 
+def normalize_raw_data (raw_data):
+    
+    # Normalizar os valores da matriz pelo valor máximo de magnitude
+    # normalized_raw_data = raw_data / np.max(np.abs(raw_data))
+    normalized_raw_data = raw_data
 
-img_files_names = get_files_list(img_data_dir)
-raw_files_names = get_files_list(raw_data_dir)
+    # Separar a parte real e imaginária e armazenar em uma nova matriz n x n x 2
+    real_part = np.real(normalized_raw_data)
+    imag_part = np.imag(normalized_raw_data)
 
-for i in range(len(img_files_names)):
+    # Criar a matriz n x n x 2
+    new_raw_data = np.stack((real_part, imag_part), axis=-1)
 
-    if img_files_names[i][:-3] != raw_files_names[i][:-3]: 
-        print (f"ERROR: File number {i} incoherent name\n\tIMG file name: {img_files_names[i]}\n\tRAW file name: {raw_files_names[i]}\nVerify if files correspond befores proceeding.")
+    return new_raw_data
 
-img_files = import_img_files(img_data_dir, img_files_names)
-raw_files = import_txt_files(raw_data_dir, raw_files_names)
+def import_raw_data (file_path):
+    
+    # Lê o arquivo e cria um array numpy a partir do conteúdo
+    with open(file_path, 'r') as file:
+        # Lê o conteúdo do arquivo e separa as linhas
+        lines = file.readlines()
 
-print (img_files.shape)
-print (raw_files.shape)
+    # Converte as linhas em uma lista de listas
+    data_i_notation = [line.strip().split(',') for line in lines]
 
-# Train the model
-deep_conv_encoder.fit(raw_files, img_files, epochs = 80, batch_size = 32, validation_split = 0.2)
+    data_j_notation = [[c.replace('i', 'j') for c in row] for row in data_i_notation]
+
+    return np.array(data_j_notation, dtype=complex)
+
+def main ():
+
+    folder_path = os.path.dirname(os.path.abspath(__file__))
+
+    # Cria o caminho completo para o arquivo
+    raw_file_path = os.path.join(folder_path, "raw_data.txt")
+    img_file_path = os.path.join(folder_path, "ground-truth_s_Terrain.bmp")
+
+    raw_data = import_raw_data(raw_file_path)
+
+    img = img_to_numpy(img_file_path)
+
+    new_raw_data = normalize_raw_data(raw_data)
+
+    print (isinstance(raw_data, np.ndarray))
+    print (isinstance(img, np.ndarray))
+
+    print (raw_data.shape)
+    print (new_raw_data.shape)
+
+    '''  
+    img_files_names = get_files_list(img_data_dir)
+    raw_files_names = get_files_list(raw_data_dir)
+
+    for i in range(len(img_files_names)):
+
+        if img_files_names[i][:-3] != raw_files_names[i][:-3]: 
+            print (f"ERROR: File number {i} incoherent name\n\tIMG file name: {img_files_names[i]}\n\tRAW file name: {raw_files_names[i]}\nVerify if files correspond befores proceeding.")
+
+    img_files = import_img_files(img_data_dir, img_files_names)
+    raw_files = import_txt_files(raw_data_dir, raw_files_names)
+
+    '''
+    
+    '''
+    num_samples = 3
+
+    raw_data_list = []
+
+    for i in range (num_samples):
+        raw_data_list.append (raw_data)
+    
+    '''
 
 
 
-'''
-image = tf.io.read_file('image.jpg')
-image = tf.image.decode_image(image)
+    # Train the model
+    deep_conv_encoder.fit(x = new_raw_data, y = img, verbose = 2, epochs = 80, batch_size = 32, validation_split = 0.2)
 
-# Convert to NumPy array
-image_array = image.numpy()
-
-print(image_array.shape)
-
-
-
-x = np.random.rand(1, height, width, channels)
-y = keras.layers.Conv2D(filters = 64, kernel_size = (3,3), activation = keras.activations.leaky_relu, input_shape=(height, width, channels))(x)
-
-print(y.shape) # (batch_size, new_height, new_width, filters)
-
-a = np.array ([
-                [0, 9, 2, 3],
-                [27, 28, 13, 12],
-                [12, 9, 26, 21],
-                [3, 26, 43, 18]
-              ])
-
-a = np.reshape(a, [1, 4, 4, 1])
-
-
-z = keras.layers.MaxPooling2D(pool_size = (2, 2), strides = (2, 2))(a)
-
-print("============================ OUTPUT ============================")
-print (z.numpy())
-print (z.shape)
-'''
+main()
