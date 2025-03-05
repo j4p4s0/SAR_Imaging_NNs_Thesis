@@ -1,0 +1,6 @@
+minSample 	= [325 : 1 : 350]
+maxRange 	= [1128 + (min_sample-325)*2.5]
+v		= [25]
+rdrhgt		= [500]
+
+Correção da Imagem SLC para 128x128 (fórmula maxRange)

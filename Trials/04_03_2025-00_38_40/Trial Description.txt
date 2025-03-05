@@ -1,0 +1,8 @@
+minSample 	= [340 : 1 : 360]
+maxRange 	= [1128 + (min_sample-325)*2.5]
+v		= [25]
+rdrhgt		= [500]
+
+Correção da Imagem SLC para 128x128 (fórmula maxRange)
+Correção da Imagem Ground-Truth para 128x128 (alterações no código)
+Sem Targets

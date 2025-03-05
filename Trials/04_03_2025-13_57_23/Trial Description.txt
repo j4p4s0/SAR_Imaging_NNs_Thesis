@@ -1,0 +1,12 @@
+minSample 	= [350]
+maxRange 	= [1128 + (min_sample-325)*2.5]
+v		= [8 : 6,4 : 40]
+rdrhgt		= [120 : 110 : 1000]
+
+Correção da Imagem SLC para 128x128 (fórmula maxRange)
+Correção da Imagem Ground-Truth para 128x128 (alterações no código)
+Sem Targets
+
+Testar influência da altura e velocidade no speckle da imagem.
+
+Alteração da altura está a afetar parte da imagem que é guardada - calibrar 'minSample' e 'maxRange' em função de 'rdrhgt'.
