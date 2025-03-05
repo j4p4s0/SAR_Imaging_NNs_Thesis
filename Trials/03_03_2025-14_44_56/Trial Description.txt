@@ -1,4 +1,0 @@
-minSample 	= [250]
-maxRange 	= [1100 : 10 : 1500]
-v		= [25]
-rdrhgt		= [500]
