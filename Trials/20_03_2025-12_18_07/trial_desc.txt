@@ -1,0 +1,4 @@
+vairação do minSample, para descobrir porque não aparecem 2 pontos na range direction
+
+prf=150
+v=200
